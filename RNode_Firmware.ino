@@ -15,9 +15,6 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#if defined(ESP32)
-  #include "driver/rtc_io.h"
-#endif
 #include "Utilities.h"
 
 FIFOBuffer serialFIFO;
@@ -62,20 +59,14 @@ char sbuf[128];
 #endif
 
 void setup() {
-  #if defined(PIN_BOOT_GATE)
-    // Boot gate (zerokelvin-dev fork): battery-backed hosts stagger the
-    // radio's boot so its inrush doesn't stack on the host's own. Rig
-    // wiring: 10k from this pin to GND makes cold power-on read LOW ->
-    // deep sleep (~uA) armed to wake on the pin going HIGH, which the host
-    // drives once its boot has settled ("sleep then enable"). On a bench
-    // (nothing wired) the internal pull-up reads HIGH and boot proceeds
-    // stock, so rnodeconf/flashing behave normally.
-    pinMode(PIN_BOOT_GATE, INPUT_PULLUP);
-    delay(5);
-    if (digitalRead(PIN_BOOT_GATE) == LOW) {
-      rtc_gpio_pullup_dis((gpio_num_t)PIN_BOOT_GATE);
-      rtc_gpio_pulldown_dis((gpio_num_t)PIN_BOOT_GATE);
-      esp_sleep_enable_ext0_wakeup((gpio_num_t)PIN_BOOT_GATE, 1);
+  #if defined(BOOT_NAP_SECONDS)
+    // Boot nap (zerokelvin-dev fork): a cold power-up deep sleeps at ~uA
+    // for BOOT_NAP_SECONDS before booting, so the radio's inrush and init
+    // bursts don't stack on a battery-backed host's own boot surge. The
+    // timer wake restarts the chip; its wakeup cause is how we tell "nap
+    // finished" from "just powered on".
+    if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_TIMER) {
+      esp_sleep_enable_timer_wakeup((uint64_t)BOOT_NAP_SECONDS * 1000000ULL);
       esp_deep_sleep_start();
     }
   #endif

@@ -361,10 +361,11 @@
       #define HAS_SLEEP true
       #define PIN_WAKEUP GPIO_NUM_0
       #define WAKEUP_LEVEL 0
-      // Boot gate strap (zerokelvin-dev fork): free RTC-capable header pin.
-      // Held low at cold power-on -> deep sleep until driven high by the
-      // host; floating (bench USB) boots normally via internal pull-up.
-      #define PIN_BOOT_GATE 4
+      // Boot nap (zerokelvin-dev fork): on cold power-up, deep sleep this
+      // long before booting, so the radio's inrush + init don't stack on a
+      // battery-backed host's own boot surge. Costs the same delay on every
+      // bench replug before the USB port appears.
+      #define BOOT_NAP_SECONDS 60
       #define OCP_TUNED 0x28
 
       const int pin_btn_usr1 = 0;
@@ -407,10 +408,11 @@
       #define HAS_LORA_LNA true
       #define PIN_WAKEUP GPIO_NUM_0
       #define WAKEUP_LEVEL 0
-      // Boot gate strap (zerokelvin-dev fork): free RTC-capable header pin.
-      // Held low at cold power-on -> deep sleep until driven high by the
-      // host; floating (bench USB) boots normally via internal pull-up.
-      #define PIN_BOOT_GATE 4
+      // Boot nap (zerokelvin-dev fork): on cold power-up, deep sleep this
+      // long before booting, so the radio's inrush + init don't stack on a
+      // battery-backed host's own boot surge. Costs the same delay on every
+      // bench replug before the USB port appears.
+      #define BOOT_NAP_SECONDS 60
       #define OCP_TUNED 0x28
       #define Vext GPIO_NUM_36
       #define LORA_PA_MODEL LORA_PA_UNKNOWN;
